@@ -27,6 +27,9 @@ export class User {
 
   @Prop({ default: false })
   emailVerified: boolean;
+
+  @Prop({ type: Array })
+  connections: [];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

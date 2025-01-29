@@ -3,6 +3,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { User, UserDocument } from "./user.schema";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { uniq } from "lodash";
 
 @Injectable()
 export class UserService {
@@ -46,5 +47,26 @@ export class UserService {
 
   async verifyEmail(email: string): Promise<null> {
     return this.userModel.findOneAndUpdate({ email, emailVerified: true });
+  }
+
+  async getConnections(id: Types.ObjectId) {
+    const user = await this.userModel.findById(id);
+    return user?.connections;
+  }
+
+  async addConnection(id: Types.ObjectId, socketId: string) {
+    const connections = await this.getConnections(id);
+    this.userModel.findOneAndUpdate(
+      { _id: id },
+      { $set: uniq([...(connections ?? []), socketId]) },
+    );
+  }
+
+  async removeConnection(id: Types.ObjectId, socketId: string) {
+    const connections = await this.getConnections(id);
+    this.userModel.findOneAndUpdate(
+      { _id: id },
+      { $set: (connections ?? []).filter((c) => c !== socketId) },
+    );
   }
 }
