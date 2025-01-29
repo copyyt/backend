@@ -120,6 +120,9 @@ export class AuthController {
       .status(HttpStatus.OK)
       .cookie("refreshToken", userAccess.refreshToken, {
         httpOnly: true,
+        expires: new Date(userAccess.refreshTokenExpiry),
+        sameSite: "none",
+        secure: false,
       });
     return {
       message: "Google Auth Successful",

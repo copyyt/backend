@@ -72,7 +72,7 @@ export class AuthService {
     return isMatch;
   }
 
-  async generateRefreshTokenForUser(user: UserDocument): Promise<string> {
+  async generateRefreshTokenForUser(user: UserDocument) {
     const payload = { sub: user._id.toString(), email: user.email };
 
     const token = await this.jwtService.signAsync(payload, {
@@ -92,7 +92,7 @@ export class AuthService {
       { upsert: true, new: true },
     );
 
-    return token;
+    return { token, expiry: expiresAt };
   }
 
   async generateAccessTokenForUser(user: UserDocument) {
@@ -106,9 +106,14 @@ export class AuthService {
 
   async generateTokensForUser(user: UserDocument) {
     const accessToken = await this.generateAccessTokenForUser(user);
-    const refreshToken = await this.generateRefreshTokenForUser(user);
+    const { token, expiry } = await this.generateRefreshTokenForUser(user);
 
-    return { accessToken, refreshToken, user: new UserDto(user) };
+    return {
+      accessToken,
+      refreshToken: token,
+      refreshTokenExpiry: expiry,
+      user: new UserDto(user),
+    };
   }
 
   async refreshTokens(
@@ -131,11 +136,7 @@ export class AuthService {
     return await this.generateTokensForUser(user);
   }
 
-  async signGoogle(userData: GoogleUser): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    user: UserDto;
-  }> {
+  async signGoogle(userData: GoogleUser) {
     let user = await this.userService.findOne({
       authId: userData.id,
       authType: AuthType.GOOGLE,

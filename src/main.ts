@@ -6,7 +6,11 @@ import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors({ origin: "*" });
+  app.enableCors({
+    origin: ["chrome-extension://ophadgignfjigkbdcmicnklokjeknnbd"],
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  });
   const config = new DocumentBuilder()
     .setTitle("Copyyt")
     .setDescription("Copyyt Apis")
