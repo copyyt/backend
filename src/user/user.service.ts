@@ -56,17 +56,23 @@ export class UserService {
 
   async addConnection(id: Types.ObjectId, socketId: string) {
     const connections = await this.getConnections(id);
-    this.userModel.findOneAndUpdate(
+    await this.userModel.findOneAndUpdate(
       { _id: id },
-      { $set: uniq([...(connections ?? []), socketId]) },
+      { $set: { connections: uniq([...(connections ?? []), socketId]) } },
     );
   }
 
   async removeConnection(id: Types.ObjectId, socketId: string) {
     const connections = await this.getConnections(id);
-    this.userModel.findOneAndUpdate(
+    await this.userModel.findOneAndUpdate(
       { _id: id },
-      { $set: (connections ?? []).filter((c) => c !== socketId) },
+      {
+        $set: {
+          connections: (connections ?? []).filter((c) => c !== socketId),
+        },
+      },
     );
   }
+
+  // TODO: delete disconnected connections: probably find a way to get all the current sockets which might be slow though
 }
