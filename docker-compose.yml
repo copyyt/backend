@@ -4,7 +4,12 @@ services:
   redis:
     image: redis:6.2-alpine
     restart: always
-    command: redis-server --save 20 1 --loglevel warning --requirepass 25801ec1eacbb3ee69c16761d573e0e6ae03bf3eb15682cee541b4b599de8977
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --save 20 1 --loglevel debug --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
+    env_file:
+      - .env
     volumes:
       - redis:/data
 
@@ -13,6 +18,8 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    env_file:
+      - .env
     volumes:
       - mongo:/data/db
 

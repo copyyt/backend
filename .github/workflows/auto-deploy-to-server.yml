@@ -1,0 +1,47 @@
+name: Deploy to CONTABO
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate .env file
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_MONGO_URI: ${{ secrets.MONGO_URI }}
+          envkey_REDIS_URL: ${{ secrets.REDIS_URL }}
+          envkey_REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          envkey_SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          envkey_ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+          envkey_MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+          envkey_MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+          envkey_ZOHO_API_TOKEN: ${{ secrets.ZOHO_API_TOKEN }}
+          envkey_BREVO_API_TOKEN: ${{ secrets.BREVO_API_TOKEN }}
+          envkey_MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+          envkey_REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
+          envkey_REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
+
+          file_name: .env
+          fail_on_empty: false
+
+      - name: Build Docker images
+        run: |
+          docker compose build --force-rm --no-cache
+
+  run:
+    runs-on: self-hosted
+
+    needs:
+      - build
+
+    steps:
+      - name: Run Docker images
+        run: |
+          docker compose up -d --force-recreate --remove-orphans
