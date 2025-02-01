@@ -45,8 +45,13 @@ export class UserService {
     return this.userModel.findOne({ email });
   }
 
-  async verifyEmail(email: string): Promise<null> {
-    return this.userModel.findOneAndUpdate({ email, emailVerified: true });
+  async verifyEmail(email: string, name: string | null = null): Promise<null> {
+    return this.userModel.findOneAndUpdate(
+      {
+        email,
+      },
+      { $set: name ? { emailVerified: true, name } : { emailVerified: true } },
+    );
   }
 
   async getConnections(id: Types.ObjectId) {
@@ -72,6 +77,25 @@ export class UserService {
         },
       },
     );
+  }
+
+  async setConnections(id: Types.ObjectId, connections: string[]) {
+    return this.userModel.findOneAndUpdate(
+      { _id: id },
+      { $set: { connections } },
+    );
+  }
+
+  async setLastMessage(id: Types.ObjectId, message: string) {
+    return this.userModel.findOneAndUpdate(
+      { _id: id },
+      { $set: { lastMessage: message } },
+    );
+  }
+
+  async getLastMessage(id: Types.ObjectId) {
+    const user = await this.userModel.findById(id);
+    return user?.lastMessage;
   }
 
   // TODO: delete disconnected connections: probably find a way to get all the current sockets which might be slow though

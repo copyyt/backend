@@ -30,6 +30,7 @@ services:
     command: yarn start:prod
     ports:
       - 8000:8000
+      - 8001:8001
     env_file:
       - .env
     depends_on:

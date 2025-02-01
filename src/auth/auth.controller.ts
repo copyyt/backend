@@ -10,9 +10,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { Request, Response } from "express";
-import { SignUpDto } from "./dto/sign-up.dto";
 import { AuthService } from "./auth.service";
-import { SignInDto } from "./dto/sign-in.dto";
 import { VerifyEmailDto } from "./dto/verify-email.dto";
 import { ResendOtpEmailDto } from "./dto/resend-otp-email.dto";
 import { AuthGuard } from "./auth.guard";
@@ -26,38 +24,14 @@ import { RefreshTokenDto } from "./dto/refresh-token.dto";
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post("/sign-up")
-  async signUp(
-    @Body() signUpData: SignUpDto,
-    @Res({ passthrough: true }) response: Response,
-  ): Promise<{ message: string; accessToken: string; user: UserDto }> {
-    const userAccess = await this.authService.signUpEmail(signUpData);
-    response
-      .status(HttpStatus.CREATED)
-      .cookie("refreshToken", userAccess.refreshToken, {
-        httpOnly: true,
-      });
-    return {
-      message: "Signup Successful",
-      ...userAccess,
-    };
-  }
-
-  @Post("/sign-in")
+  @Post("/sign-in-passwordless")
   async signIn(
-    @Body() signInData: SignInDto,
+    @Body() signInData: ResendOtpEmailDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<{ message: string; accessToken: string; user: UserDto }> {
-    const userAccess = await this.authService.signInEmail(signInData);
-    response
-      .status(HttpStatus.OK)
-      .cookie("refreshToken", userAccess.refreshToken, {
-        httpOnly: true,
-      });
-    return {
-      message: "Signin Successful",
-      ...userAccess,
-    };
+  ): Promise<{ message: string; data: { isNew: boolean } }> {
+    const userAccess = await this.authService.signInPasswordless(signInData);
+    response.status(HttpStatus.OK);
+    return userAccess;
   }
 
   @Post("/refresh-tokens")
@@ -81,6 +55,9 @@ export class AuthController {
       .status(HttpStatus.OK)
       .cookie("refreshToken", userAccess.refreshToken, {
         httpOnly: true,
+        expires: new Date(userAccess.refreshTokenExpiry),
+        sameSite: "none",
+        secure: true,
       });
     return {
       message: "Token refresh successful",
@@ -93,9 +70,18 @@ export class AuthController {
     @Body() data: VerifyEmailDto,
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ message: string }> {
-    const resp = await this.authService.verifyEmail(data);
-    response.status(HttpStatus.OK);
-    return resp;
+    const userAccess = await this.authService.verifyEmail(data);
+    const { refreshToken, refreshTokenExpiry, ...rest } = userAccess;
+    response.status(HttpStatus.OK).cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      expires: new Date(refreshTokenExpiry),
+      sameSite: "none",
+      secure: true,
+    });
+    return {
+      message: "Signin Successful",
+      ...rest,
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -116,17 +102,16 @@ export class AuthController {
   ): Promise<{ message: string }> {
     const userData = await this.authService.verifyGoogleAuthToken(data.token);
     const userAccess = await this.authService.signGoogle(userData);
-    response
-      .status(HttpStatus.OK)
-      .cookie("refreshToken", userAccess.refreshToken, {
-        httpOnly: true,
-        expires: new Date(userAccess.refreshTokenExpiry),
-        sameSite: "none",
-        secure: false,
-      });
+    const { refreshToken, refreshTokenExpiry, ...rest } = userAccess;
+    response.status(HttpStatus.OK).cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      expires: new Date(refreshTokenExpiry),
+      sameSite: "none",
+      secure: true,
+    });
     return {
       message: "Google Auth Successful",
-      ...userAccess,
+      ...rest,
     };
   }
 

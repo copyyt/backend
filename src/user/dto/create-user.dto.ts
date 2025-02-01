@@ -10,7 +10,7 @@ import { AuthType } from "../enum/auth-type.enum";
 export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
-  name: string;
+  name?: string;
 
   @IsNotEmpty()
   @IsEmail()

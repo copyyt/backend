@@ -33,11 +33,30 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private userService: UserService,
   ) {}
 
+  isSocketActive(socketId: string): boolean {
+    if (!this.server) {
+      throw new Error("Socket.IO server instance is not initialized.");
+    }
+    const socket = this.server.sockets.sockets.get(socketId);
+    return socket ? socket.connected : false;
+  }
+
   private async initializeUserConnection(
     user: UserDocument,
     socket: Socket,
   ): Promise<void> {
     socket.data.user = user;
+
+    // delete disconnected connections
+    const connections = await this.userService.getConnections(user._id);
+    if (connections) {
+      const activeConnections = connections.filter((connection) =>
+        this.isSocketActive(connection),
+      );
+      if (activeConnections.length !== connections.length) {
+        await this.userService.setConnections(user._id, activeConnections);
+      }
+    }
     await this.userService.addConnection(user._id, socket.id);
     this.logger.log(
       `Client connected: ${socket.id} - User ID: ${user._id.toString()}`,
@@ -81,6 +100,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const connections = await this.userService.getConnections(
         currentUser._id,
       );
+      if (message) {
+        this.userService.setLastMessage(currentUser._id, String(message));
+      }
       uniq([...(connections ?? []), socket.id]).forEach((connection) => {
         this.server.to(connection).emit("message", message);
       });

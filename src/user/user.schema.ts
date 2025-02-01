@@ -6,7 +6,7 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema({ timestamps: true })
 export class User {
-  @Prop({ required: true })
+  @Prop({ required: false })
   name: string;
 
   @Prop({ required: false, unique: true })
@@ -27,6 +27,9 @@ export class User {
 
   @Prop({ default: false })
   emailVerified: boolean;
+
+  @Prop({ type: String, default: "" })
+  lastMessage: string;
 
   @Prop({ type: Array })
   connections: [];

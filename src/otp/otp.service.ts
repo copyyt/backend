@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { OTP } from "./otp.schema";
 import { UserDocument } from "src/user/user.schema";
-import crypto from "crypto";
+import * as crypto from "crypto";
 
 const otpExpiryMinutes = 10;
 
@@ -26,8 +26,6 @@ export class OtpService {
 
   async verifyOTP(email: string, code: number): Promise<boolean> {
     const record = await this.otpModel.findOne({ email, code });
-
-    console.log(record);
 
     if (!record) {
       return false;

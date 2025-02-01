@@ -7,7 +7,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
-    origin: ["chrome-extension://ophadgignfjigkbdcmicnklokjeknnbd"],
+    origin: [
+      "chrome-extension://ophadgignfjigkbdcmicnklokjeknnbd",
+      "http://localhost:5173",
+    ],
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   });

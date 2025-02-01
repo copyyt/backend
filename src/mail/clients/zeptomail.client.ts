@@ -9,7 +9,7 @@ export const sendEmailZepto = async (
 ) => {
   const url = "https://api.zeptomail.com/v1.1/email";
   const body = JSON.stringify({
-    from: { address: "fastpoint@psami.com", name: "Fast Point" },
+    from: { address: "copyyt@psami.com", name: "Copyyt" },
     to: addresses.map((address) => ({
       email_address: { address: address.email, name: address.name },
     })),

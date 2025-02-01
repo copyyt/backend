@@ -9,7 +9,7 @@ export const sendEmailBrevo = async (
 ) => {
   const url = "https://api.sendinblue.com/v3/smtp/email";
   const body = {
-    sender: { email: "fastpoint@psami.com", name: "Fast Point" },
+    sender: { email: "copyyt@psami.com", name: "Copyyt" },
     to: addresses,
     subject,
     htmlContent: htmlString,

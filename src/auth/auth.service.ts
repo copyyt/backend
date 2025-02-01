@@ -116,9 +116,7 @@ export class AuthService {
     };
   }
 
-  async refreshTokens(
-    refreshToken: string,
-  ): Promise<{ accessToken: string; refreshToken: string; user: UserDto }> {
+  async refreshTokens(refreshToken: string) {
     const storedToken = await this.refreshTokenModel.findOne({
       token: refreshToken,
     });
@@ -139,7 +137,7 @@ export class AuthService {
   async signGoogle(userData: GoogleUser) {
     let user = await this.userService.findOne({
       authId: userData.id,
-      authType: AuthType.GOOGLE,
+      email: userData.email,
     });
 
     if (!user) {
@@ -151,6 +149,10 @@ export class AuthService {
         emailVerified: userData.verified_email,
         password: userData.id,
       });
+    }
+
+    if (user.authType !== AuthType.GOOGLE) {
+      throw new UnauthorizedException("Sign in with email");
     }
 
     return await this.generateTokensForUser(user);
@@ -194,6 +196,37 @@ export class AuthService {
     return await this.generateTokensForUser(user);
   }
 
+  async signInPasswordless(data: ResendOtpEmailDto) {
+    let isNew = false;
+    let user = await this.userService.findOneByEmail(data.email);
+    if (!user) {
+      user = await this.userService.create({
+        email: data.email,
+        authType: AuthType.EMAIL,
+        password: data.email,
+      });
+    }
+    if (!user.name) {
+      isNew = true;
+    }
+    if (user.authType !== AuthType.EMAIL) {
+      throw new UnauthorizedException("Sign in with google");
+    }
+    const otp = await this.otpService.generateOtpForUser(user);
+    this.mailService.send(
+      [{ name: user.name, email: user.email }],
+      "Verify your Email",
+      "verify-email.template.html",
+      { code: otp },
+    );
+    return {
+      message: "Email Sent",
+      data: {
+        isNew,
+      },
+    };
+  }
+
   // TODO: Protect with Auth
   async resendEmailVerificationOtp(data: ResendOtpEmailDto): Promise<{
     message: string;
@@ -217,9 +250,7 @@ export class AuthService {
     };
   }
 
-  async verifyEmail(verifyEmailData: VerifyEmailDto): Promise<{
-    message: string;
-  }> {
+  async verifyEmail(verifyEmailData: VerifyEmailDto) {
     const validOtp = await this.otpService.verifyOTP(
       verifyEmailData.email,
       verifyEmailData.code,
@@ -227,9 +258,14 @@ export class AuthService {
     if (!validOtp) {
       throw new UnauthorizedException();
     }
-    await this.userService.verifyEmail(verifyEmailData.email);
-    return {
-      message: "Email Verified",
-    };
+    await this.userService.verifyEmail(
+      verifyEmailData.email,
+      verifyEmailData.name,
+    );
+    const user = await this.userService.findOneByEmail(verifyEmailData.email);
+    if (!user) {
+      throw new NotFoundException();
+    }
+    return await this.generateTokensForUser(user);
   }
 }
