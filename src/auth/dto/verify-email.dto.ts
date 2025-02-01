@@ -8,7 +8,6 @@ export class VerifyEmailDto {
   email: string;
 
   @ApiProperty()
-  @IsNotEmpty()
   @IsString()
   name?: string;
 
