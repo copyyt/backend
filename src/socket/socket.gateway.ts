@@ -18,7 +18,10 @@ import { uniq } from "lodash";
 
 @WebSocketGateway(8001, {
   cors: {
-    origin: ["chrome-extension://ophadgignfjigkbdcmicnklokjeknnbd"],
+    origin: [
+      "chrome-extension://ophadgignfjigkbdcmicnklokjeknnbd",
+      "http://localhost:5173",
+    ],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS".split(","),
     credentials: true,
     allowedHeaders: ["Authorization", "authorization"],
