@@ -36,3 +36,5 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.index({ authId: 1 }, { unique: true, sparse: true });

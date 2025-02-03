@@ -4,6 +4,7 @@ import {
   IsString,
   MinLength,
   IsEnum,
+  IsOptional,
 } from "class-validator";
 import { AuthType } from "../enum/auth-type.enum";
 
@@ -21,6 +22,7 @@ export class CreateUserDto {
   password: string;
 
   @IsString()
+  @IsOptional()
   authId?: string;
 
   emailVerified?: boolean;
