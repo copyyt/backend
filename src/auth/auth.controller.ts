@@ -51,17 +51,18 @@ export class AuthController {
       });
     }
     const userAccess = await this.authService.refreshTokens(refreshToken);
+    const { refreshTokenExpiry, ...rest } = userAccess;
     response
       .status(HttpStatus.OK)
       .cookie("refreshToken", userAccess.refreshToken, {
         httpOnly: true,
-        expires: new Date(userAccess.refreshTokenExpiry),
+        expires: new Date(refreshTokenExpiry),
         sameSite: "none",
         secure: true,
       });
     return {
       message: "Token refresh successful",
-      ...userAccess,
+      ...rest,
     };
   }
 
@@ -71,13 +72,15 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ message: string }> {
     const userAccess = await this.authService.verifyEmail(data);
-    const { refreshToken, refreshTokenExpiry, ...rest } = userAccess;
-    response.status(HttpStatus.OK).cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      expires: new Date(refreshTokenExpiry),
-      sameSite: "none",
-      secure: true,
-    });
+    const { refreshTokenExpiry, ...rest } = userAccess;
+    response
+      .status(HttpStatus.OK)
+      .cookie("refreshToken", userAccess.refreshToken, {
+        httpOnly: true,
+        expires: new Date(refreshTokenExpiry),
+        sameSite: "none",
+        secure: true,
+      });
     return {
       message: "Signin Successful",
       ...rest,
@@ -102,8 +105,8 @@ export class AuthController {
   ): Promise<{ message: string }> {
     const userData = await this.authService.verifyGoogleAuthToken(data.token);
     const userAccess = await this.authService.signGoogle(userData);
-    const { refreshToken, refreshTokenExpiry, ...rest } = userAccess;
-    response.status(HttpStatus.OK).cookie("refreshToken", refreshToken, {
+    const { refreshTokenExpiry, ...rest } = userAccess;
+    response.status(HttpStatus.OK).cookie("refreshToken", rest.refreshToken, {
       httpOnly: true,
       expires: new Date(refreshTokenExpiry),
       sameSite: "none",
