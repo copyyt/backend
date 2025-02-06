@@ -87,7 +87,6 @@ export class AuthController {
     };
   }
 
-  @UseGuards(AuthGuard)
   @Post("/resend-email-otp")
   async resendEmailOtp(
     @Body() data: ResendOtpEmailDto,

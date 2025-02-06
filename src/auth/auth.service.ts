@@ -86,11 +86,7 @@ export class AuthService {
         Number(this.configService.get<string>("REFRESH_TOKEN_EXPIRE_DAYS")),
     );
 
-    await this.refreshTokenModel.findOneAndUpdate(
-      { userId: user._id },
-      { token, expiresAt },
-      { upsert: true, new: true },
-    );
+    await this.refreshTokenModel.create({ userId: user._id, token, expiresAt });
 
     return { token, expiry: expiresAt };
   }
@@ -130,6 +126,16 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException("Invalid or expired refresh token");
     }
+    try {
+      await this.jwtService.verifyAsync(refreshToken, {
+        secret: this.configService.get<string>("REFRESH_SECRET_KEY"),
+      });
+    } catch {
+      throw new UnauthorizedException("Invalid or expired refresh token");
+    }
+
+    // remove the old token
+    await this.refreshTokenModel.deleteOne({ token: refreshToken });
 
     return await this.generateTokensForUser(user);
   }
@@ -227,7 +233,6 @@ export class AuthService {
     };
   }
 
-  // TODO: Protect with Auth
   async resendEmailVerificationOtp(data: ResendOtpEmailDto): Promise<{
     message: string;
   }> {
