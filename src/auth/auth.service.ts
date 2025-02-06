@@ -140,6 +140,10 @@ export class AuthService {
     return await this.generateTokensForUser(user);
   }
 
+  async logout(refreshToken: string) {
+    await this.refreshTokenModel.deleteOne({ token: refreshToken });
+  }
+
   async signGoogle(userData: GoogleUser) {
     let user = await this.userService.findOne({
       authId: userData.id,

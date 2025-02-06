@@ -9,7 +9,7 @@ export class User {
   @Prop({ required: false })
   name: string;
 
-  @Prop({ required: false, unique: true })
+  @Prop({ required: false, unique: true, sparse: true })
   authId: string;
 
   @Prop({ required: true, unique: true })
@@ -36,5 +36,3 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-
-UserSchema.index({ authId: 1 }, { unique: true, sparse: true });

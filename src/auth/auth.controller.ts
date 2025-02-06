@@ -66,6 +66,34 @@ export class AuthController {
     };
   }
 
+  @Post("/logout")
+  async logout(
+    @Req() req: Request,
+    @Body() data: RefreshTokenDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<{ message: string }> {
+    let refreshToken = data.refreshToken;
+    if (!refreshToken) {
+      refreshToken = req.cookies.refreshToken;
+    }
+    if (!refreshToken) {
+      throw new BadRequestException({
+        code: "refresh_token_not_found",
+        description: "Refresh token not in request or cookie",
+      });
+    }
+    await this.authService.logout(refreshToken);
+    response.status(HttpStatus.OK).cookie("refreshToken", "", {
+      httpOnly: true,
+      expires: new Date("1970-01-01T00:00:00.000Z"),
+      sameSite: "none",
+      secure: true,
+    });
+    return {
+      message: "Token refresh successful",
+    };
+  }
+
   @Post("/verify-email")
   async verifyEmail(
     @Body() data: VerifyEmailDto,
