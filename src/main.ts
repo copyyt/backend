@@ -12,6 +12,7 @@ async function bootstrap() {
     origin: [
       "chrome-extension://ophadgignfjigkbdcmicnklokjeknnbd",
       "http://localhost:5173",
+      "https://app.copyyt.psami.com"
     ],
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
