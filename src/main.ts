@@ -9,11 +9,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
   app.enableCors({
-    origin: [
-      "chrome-extension://ophadgignfjigkbdcmicnklokjeknnbd",
-      "http://localhost:5173",
-      "https://app.copyyt.psami.com"
-    ],
+    origin: process.env.CORS_ALLOWED_ORIGINS?.split(",") || [],
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   });

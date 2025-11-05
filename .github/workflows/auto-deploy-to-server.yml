@@ -28,6 +28,7 @@ jobs:
           envkey_MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
           envkey_REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
           envkey_REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
+          envkey_CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
 
           file_name: .env
           fail_on_empty: false
